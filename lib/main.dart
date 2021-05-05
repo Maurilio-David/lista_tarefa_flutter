@@ -16,11 +16,13 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  //Controlador para pegar o texto digitado pelo usuário no TextField
   final _toDoController = TextEditingController();
-
+  //Declaração da lista de array
   List _toDoList = [];
 
   @override
+  // ler os dados na inicialização da tela
   void initState() {
     super.initState();
     _readData().then((data) {
@@ -30,6 +32,7 @@ class _HomeState extends State<Home> {
     });
   }
 
+  //adiciona na lista
   void _addToDo() {
     setState(() {
       Map<String, dynamic> newToDo = Map();
@@ -42,11 +45,13 @@ class _HomeState extends State<Home> {
   }
 
   @override
+  //encontra pasta
   Future<File> _getFile() async {
     final directory = await getApplicationDocumentsDirectory();
     return File("${directory.path}/data.json");
   }
 
+  //salva os dados
   Future<File> _saveData() async {
     String data = json.encode(_toDoList);
 
@@ -54,6 +59,7 @@ class _HomeState extends State<Home> {
     return file.writeAsString(data);
   }
 
+  //ler os dados
   Future<String> _readData() async {
     try {
       final file = await _getFile();
@@ -96,25 +102,39 @@ class _HomeState extends State<Home> {
             child: ListView.builder(
                 padding: EdgeInsets.only(top: 10.0),
                 itemCount: _toDoList.length,
-                itemBuilder: (context, index) {
-                  return CheckboxListTile(
-                    title: Text(_toDoList[index]["title"]),
-                    value: _toDoList[index]["ok"],
-                    secondary: CircleAvatar(
-                      child: Icon(
-                          _toDoList[index]["ok"] ? Icons.check : Icons.error),
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _toDoList[index]["ok"] = value;
-                        _saveData();
-                      });
-                    },
-                  );
-                }),
+                itemBuilder: buildItem),
           )
         ],
       ),
     );
+  }
+
+  //Gera item da lista
+  Widget buildItem(context, index) {
+    return Dismissible(
+        key: Key(DateTime.now().millisecondsSinceEpoch.toString()),
+        background: Container(
+          color: Colors.red,
+          child: Align(
+              alignment: Alignment(-0.9, 0.0),
+              child: Icon(
+                Icons.delete,
+                color: Colors.white,
+              )),
+        ),
+        direction: DismissDirection.startToEnd,
+        child: CheckboxListTile(
+          title: Text(_toDoList[index]["title"]),
+          value: _toDoList[index]["ok"],
+          secondary: CircleAvatar(
+            child: Icon(_toDoList[index]["ok"] ? Icons.check : Icons.error),
+          ),
+          onChanged: (value) {
+            setState(() {
+              _toDoList[index]["ok"] = value;
+              _saveData();
+            });
+          },
+        ));
   }
 }
